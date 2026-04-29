@@ -21,8 +21,20 @@ class HomePage extends StatelessWidget {
       ),
       body: Obx(() {
         if (controller.assets.isEmpty) {
-          return const Center(
-            child: Text('还没添加任何物品呢，快来记一笔吧！\n(～￣▽￣)～', textAlign: TextAlign.center),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/images/empty_state.png', width: 250),
+                const SizedBox(height: 24),
+                const Text(
+                  '还没添加任何物品呢，\n快来记一笔吧！',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: AppColors.textSecondary, height: 1.5),
+                ),
+                const SizedBox(height: 80),
+              ],
+            ),
           );
         }
 
