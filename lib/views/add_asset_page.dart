@@ -25,9 +25,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('记一笔'),
-      ),
+      appBar: AppBar(title: const Text('记一笔')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -53,25 +51,44 @@ class _AddAssetPageState extends State<AddAssetPage> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextFormField(
-                      decoration: const InputDecoration(labelText: '物品名称', hintText: '比如: iPhone 14 Pro'),
-                      validator: (val) => val == null || val.isEmpty ? '请输入物品名称' : null,
+                      decoration: const InputDecoration(
+                        labelText: '物品名称',
+                        hintText: '比如: iPhone 14 Pro',
+                      ),
+                      validator: (val) =>
+                          val == null || val.isEmpty ? '请输入物品名称' : null,
                       onSaved: (val) => _name = val ?? '',
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               // Category
               DropdownButtonFormField<AssetCategory>(
-                value: _category,
+                initialValue: _category,
                 decoration: const InputDecoration(labelText: '分类'),
                 items: const [
-                  DropdownMenuItem(value: AssetCategory.digital, child: Text('数码外设')),
-                  DropdownMenuItem(value: AssetCategory.transport, child: Text('交通出行')),
-                  DropdownMenuItem(value: AssetCategory.furniture, child: Text('大件家居')),
-                  DropdownMenuItem(value: AssetCategory.fashion, child: Text('服饰箱包')),
-                  DropdownMenuItem(value: AssetCategory.service, child: Text('权益/服务')),
+                  DropdownMenuItem(
+                    value: AssetCategory.digital,
+                    child: Text('数码外设'),
+                  ),
+                  DropdownMenuItem(
+                    value: AssetCategory.transport,
+                    child: Text('交通出行'),
+                  ),
+                  DropdownMenuItem(
+                    value: AssetCategory.furniture,
+                    child: Text('大件家居'),
+                  ),
+                  DropdownMenuItem(
+                    value: AssetCategory.fashion,
+                    child: Text('服饰箱包'),
+                  ),
+                  DropdownMenuItem(
+                    value: AssetCategory.service,
+                    child: Text('权益/服务'),
+                  ),
                 ],
                 onChanged: (val) {
                   if (val != null) setState(() => _category = val);
@@ -82,8 +99,13 @@ class _AddAssetPageState extends State<AddAssetPage> {
 
               // Price
               TextFormField(
-                decoration: const InputDecoration(labelText: '买入价格 (¥)', hintText: '0.00'),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: '买入价格 (¥)',
+                  hintText: '0.00',
+                ),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 validator: (val) {
                   if (val == null || val.isEmpty) return '请输入买入价格';
                   if (double.tryParse(val) == null) return '请输入有效的数字';
@@ -115,17 +137,27 @@ class _AddAssetPageState extends State<AddAssetPage> {
 
               // Depreciation Model
               DropdownButtonFormField<DepreciationModel>(
-                value: _depreciationModel,
+                initialValue: _depreciationModel,
                 decoration: const InputDecoration(labelText: '折旧模型'),
                 items: const [
-                  DropdownMenuItem(value: DepreciationModel.modelA_Linear, child: Text('模型A：直线归零法')),
-                  DropdownMenuItem(value: DepreciationModel.modelB_DropAndDecay, child: Text('模型B：落地打折+持续贬值')),
-                  DropdownMenuItem(value: DepreciationModel.modelC_SlowDecay, child: Text('模型C：保底/缓慢折旧法')),
+                  DropdownMenuItem(
+                    value: DepreciationModel.modelA_Linear,
+                    child: Text('模型A：直线归零法'),
+                  ),
+                  DropdownMenuItem(
+                    value: DepreciationModel.modelB_DropAndDecay,
+                    child: Text('模型B：落地打折+持续贬值'),
+                  ),
+                  DropdownMenuItem(
+                    value: DepreciationModel.modelC_SlowDecay,
+                    child: Text('模型C：保底/缓慢折旧法'),
+                  ),
                 ],
                 onChanged: (val) {
                   if (val != null) setState(() => _depreciationModel = val);
                 },
-                onSaved: (val) => _depreciationModel = val ?? DepreciationModel.modelB_DropAndDecay,
+                onSaved: (val) => _depreciationModel =
+                    val ?? DepreciationModel.modelB_DropAndDecay,
               ),
               const SizedBox(height: 32),
 
@@ -134,7 +166,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    
+
                     final newItem = AssetItem(
                       id: 0, // Will be set in DatabaseService
                       name: _name,
@@ -142,11 +174,12 @@ class _AddAssetPageState extends State<AddAssetPage> {
                       category: _category,
                       buyPrice: _buyPrice,
                       buyDate: _buyDate,
-                      currentValue: _buyPrice, // Initial current value is buy price
+                      currentValue:
+                          _buyPrice, // Initial current value is buy price
                       depreciationModel: _depreciationModel,
                       status: ItemStatus.active,
                     );
-                    
+
                     controller.addAsset(newItem);
                     Get.back();
                   }
