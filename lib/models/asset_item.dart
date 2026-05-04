@@ -86,6 +86,9 @@ class AssetItem extends HiveObject {
   @HiveField(11)
   String? note;
 
+  @HiveField(12)
+  DateTime? expiryDate;
+
   AssetItem({
     required this.id,
     required this.name,
@@ -99,5 +102,6 @@ class AssetItem extends HiveObject {
     this.sellPrice,
     this.sellDate,
     this.note,
+    this.expiryDate,
   });
 }

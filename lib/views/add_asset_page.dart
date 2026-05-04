@@ -133,6 +133,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
   AssetCategory _category = AssetCategory.digital;
   double _buyPrice = 0.0;
   DateTime _buyDate = DateTime.now();
+  DateTime? _expiryDate;
   DepreciationModel _depreciationModel = DepreciationModel.modelB_DropAndDecay;
   String _note = '';
 
@@ -244,6 +245,47 @@ class _AddAssetPageState extends State<AddAssetPage> {
               ),
               const SizedBox(height: 16),
 
+              // 到期时间（选填）
+              InkWell(
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _expiryDate ?? DateTime.now().add(const Duration(days: 365)),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                    locale: const Locale('zh', 'CN'),
+                  );
+                  if (picked != null) {
+                    setState(() => _expiryDate = picked);
+                  }
+                },
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: '到期时间（选填）',
+                    suffixIcon: _expiryDate != null
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 18, color: AppColors.textSecondary),
+                            onPressed: () => setState(() => _expiryDate = null),
+                          )
+                        : const Icon(
+                            Icons.event_rounded,
+                            color: AppColors.textSecondary,
+                            size: 20,
+                          ),
+                  ),
+                  child: Text(
+                    _expiryDate != null
+                        ? '${_expiryDate!.year}年${_expiryDate!.month}月${_expiryDate!.day}日'
+                        : '未设置',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: _expiryDate != null ? AppColors.textPrimary : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // 折旧模型
               DropdownButtonFormField<DepreciationModel>(
                 initialValue: _depreciationModel,
@@ -300,6 +342,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
                       depreciationModel: _depreciationModel,
                       status: ItemStatus.active,
                       note: _note.isNotEmpty ? _note : null,
+                      expiryDate: _expiryDate,
                     );
 
                     controller.addAsset(newItem);

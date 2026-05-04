@@ -10,8 +10,15 @@ class AssetController extends GetxController {
   // 看板详情显示开关
   final RxBool isDetailVisible = true.obs;
 
+  // 列表视图模式：false=单列, true=双列网格
+  final RxBool isGridView = false.obs;
+
   void toggleDetailVisible() {
     isDetailVisible.value = !isDetailVisible.value;
+  }
+
+  void toggleGridView() {
+    isGridView.value = !isGridView.value;
   }
 
   @override
@@ -87,16 +94,20 @@ class AssetController extends GetxController {
   }
 
   double getDailyCost(AssetItem asset) {
+    int days;
     if (asset.status == ItemStatus.archived) {
-      if (asset.sellDate == null || asset.sellPrice == null) return 0.0;
-      final days = asset.sellDate!.difference(asset.buyDate).inDays;
-      if (days <= 0) return 0.0;
-      return (asset.buyPrice - asset.sellPrice!) / days;
+      // 已出掉：从购买日到出售日
+      if (asset.sellDate == null) return 0.0;
+      days = asset.sellDate!.difference(asset.buyDate).inDays;
+    } else if (asset.expiryDate != null) {
+      // 有到期时间：从购买日到到期日
+      days = asset.expiryDate!.difference(asset.buyDate).inDays;
     } else {
-      final days = DateTime.now().difference(asset.buyDate).inDays;
-      if (days <= 0) return 0.0;
-      return (asset.buyPrice - asset.currentValue) / days;
+      // 无到期时间：从购买日到当前日期
+      days = DateTime.now().difference(asset.buyDate).inDays;
     }
+    if (days <= 0) return 0.0;
+    return asset.buyPrice / days;
   }
 
   int getDaysOwned(AssetItem asset) {
