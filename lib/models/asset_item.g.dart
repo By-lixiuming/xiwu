@@ -30,7 +30,7 @@ class AssetItemAdapter extends TypeAdapter<AssetItem> {
       sellDate: fields[10] as DateTime?,
       note: fields[11] as String?,
       expiryDate: fields[12] as DateTime?,
-      sortOrder: fields[13] as int,
+      sortOrder: fields[13] == null ? 0 : fields[13] as int,
     );
   }
 

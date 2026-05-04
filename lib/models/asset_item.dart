@@ -89,7 +89,7 @@ class AssetItem extends HiveObject {
   @HiveField(12)
   DateTime? expiryDate;
 
-  @HiveField(13)
+  @HiveField(13, defaultValue: 0)
   int sortOrder;
 
   AssetItem({
