@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:xiwu/services/database_service.dart';
 import 'package:xiwu/theme/app_theme.dart';
-import 'package:xiwu/views/home_page.dart';
+import 'package:xiwu/views/main_scaffold.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: '惜物 Xiwu',
       theme: AppTheme.lightTheme,
-      home: HomePage(),
+      home: const MainScaffold(),
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

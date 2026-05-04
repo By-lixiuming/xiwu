@@ -35,4 +35,11 @@ class DatabaseService extends GetxService {
   Future<void> deleteAsset(int id) async {
     await _assetBox.delete(id);
   }
+
+  /// 批量更新所有物品（用于排序持久化）
+  Future<void> updateAllAssets(List<AssetItem> items) async {
+    for (var item in items) {
+      await _assetBox.put(item.id, item);
+    }
+  }
 }

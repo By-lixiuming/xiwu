@@ -89,6 +89,9 @@ class AssetItem extends HiveObject {
   @HiveField(12)
   DateTime? expiryDate;
 
+  @HiveField(13)
+  int sortOrder;
+
   AssetItem({
     required this.id,
     required this.name,
@@ -103,5 +106,6 @@ class AssetItem extends HiveObject {
     this.sellDate,
     this.note,
     this.expiryDate,
+    this.sortOrder = 0,
   });
 }

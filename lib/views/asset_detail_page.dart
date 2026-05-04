@@ -131,6 +131,7 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
         ],
         _buildCostCard(),
         const SizedBox(height: 32),
+        // 出掉按钮（服役中或已退役时显示）
         if (widget.asset.status == ItemStatus.active || widget.asset.status == ItemStatus.retired)
           SizedBox(
             width: double.infinity,
@@ -144,6 +145,7 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
               ),
             ),
           ),
+        // 退役按钮（仅服役中时显示）
         if (widget.asset.status == ItemStatus.active)
           Padding(
             padding: const EdgeInsets.only(top: 12),
@@ -156,6 +158,23 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.textSecondary,
                   side: BorderSide(color: AppColors.textSecondary.withValues(alpha: 0.3)),
+                ),
+              ),
+            ),
+          ),
+        // 恢复服役按钮（已退役或已出掉时显示）
+        if (widget.asset.status == ItemStatus.retired || widget.asset.status == ItemStatus.archived)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _showReactivateDialog(context),
+                icon: const Icon(Icons.play_circle_outline_rounded),
+                label: const Text('恢复服役'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.success,
+                  foregroundColor: const Color(0xFF2E7D5A),
                 ),
               ),
             ),
@@ -396,7 +415,7 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
     // 显示计算方式说明
     String calcNote;
     if (widget.asset.status == ItemStatus.archived) {
-      calcNote = '买入价格 ÷ 持有天数';
+      calcNote = '(买入价格 - 卖出价格) ÷ 持有天数';
     } else if (widget.asset.expiryDate != null) {
       calcNote = '买入价格 ÷ 到期天数';
     } else {
@@ -653,42 +672,72 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
 
   void _showArchiveDialog(BuildContext context) {
     double? sellPrice;
+    DateTime sellDate = DateTime.now();
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('出掉 / 报废'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('填写入手时的残值（如果是送人或报废请填0）：'),
-              const SizedBox(height: 16),
-              TextField(
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: '最终价格'),
-                onChanged: (val) => sellPrice = double.tryParse(val),
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('出掉 / 报废'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('填写卖出价格（如果是送人或报废请填0）：'),
+                  const SizedBox(height: 16),
+                  TextField(
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(labelText: '卖出价格'),
+                    onChanged: (val) => sellPrice = double.tryParse(val),
+                  ),
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: sellDate,
+                        firstDate: widget.asset.buyDate,
+                        lastDate: DateTime.now(),
+                        locale: const Locale('zh', 'CN'),
+                      );
+                      if (picked != null) {
+                        setDialogState(() => sellDate = picked);
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: '卖出日期',
+                        suffixIcon: Icon(Icons.calendar_today_rounded, color: AppColors.textSecondary, size: 20),
+                      ),
+                      child: Text(
+                        '${sellDate.year}年${sellDate.month}月${sellDate.day}日',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: const Text('取消'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (sellPrice != null) {
-                  widget.asset.status = ItemStatus.archived;
-                  widget.asset.sellPrice = sellPrice;
-                  widget.asset.sellDate = DateTime.now();
-                  controller.updateAsset(widget.asset);
-                  Get.back();
-                  Get.back(); // Return to home
-                }
-              },
-              child: const Text('确认'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () => Get.back(),
+                  child: const Text('取消'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (sellPrice != null) {
+                      widget.asset.status = ItemStatus.archived;
+                      widget.asset.sellPrice = sellPrice;
+                      widget.asset.sellDate = sellDate;
+                      controller.updateAsset(widget.asset);
+                      Get.back();
+                      Get.back();
+                    }
+                  },
+                  child: const Text('确认'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -740,6 +789,36 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
                 Get.back(); // Return to home
               },
               child: const Text('确认退役'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showReactivateDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('恢复服役'),
+          content: const Text('将此物品恢复为「服役中」？\n卖出价格和卖出日期将被清除。'),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('取消'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                controller.reactivateAsset(widget.asset);
+                Get.back();
+                Get.back();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success,
+                foregroundColor: const Color(0xFF2E7D5A),
+              ),
+              child: const Text('确认恢复'),
             ),
           ],
         );
