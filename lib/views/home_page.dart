@@ -71,7 +71,7 @@ class HomePage extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -89,75 +89,77 @@ class HomePage extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 20),
-
-          // --- 分隔线 ---
-          Container(
-            height: 1,
-            color: Colors.white.withOpacity(0.2),
-          ),
-
           const SizedBox(height: 16),
 
-          // --- 第二行：当前总残值 + 总折损（可隐藏）+ 眼睛开关 ---
-          Row(
-            children: [
-              Expanded(
-                child: controller.isDetailVisible.value
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildDetailStatItem('当前总残值', controller.totalCurrentValue),
-                          _buildDetailStatItem('总折损', controller.totalDepreciation),
-                        ],
-                      )
-                    : const Text(
-                        '****',
-                        style: TextStyle(
-                          color: Colors.white54,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 6,
-                        ),
-                      ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: controller.toggleDetailVisible,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    controller.isDetailVisible.value
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: Colors.white,
-                    size: 20,
+          // --- 可展开的分隔线 + 箭头 ---
+          GestureDetector(
+            onTap: controller.toggleDetailVisible,
+            child: Row(
+              children: [
+                AnimatedRotation(
+                  turns: controller.isDetailVisible.value ? 0.25 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: const Icon(
+                    Icons.arrow_right_rounded,
+                    color: Colors.white70,
+                    size: 24,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 4),
+                Text(
+                  controller.isDetailVisible.value ? '收起详情' : '展开详情',
+                  style: const TextStyle(color: Colors.white60, fontSize: 11),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    height: 1,
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                ),
+              ],
+            ),
           ),
 
-          const SizedBox(height: 20),
-
-          // --- 分隔线 ---
-          Container(
-            height: 1,
-            color: Colors.white.withOpacity(0.2),
+          // --- 可折叠区域：当前总残值 + 总折损 ---
+          AnimatedCrossFade(
+            firstChild: Padding(
+              padding: const EdgeInsets.only(top: 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildDetailStatItem('当前总残值', controller.totalCurrentValue),
+                  _buildDetailStatItem('总折损', controller.totalDepreciation),
+                ],
+              ),
+            ),
+            secondChild: const SizedBox.shrink(),
+            crossFadeState: controller.isDetailVisible.value
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            duration: const Duration(milliseconds: 250),
           ),
 
           const SizedBox(height: 16),
 
-          // --- 第三行：三种状态占比统计 ---
-          _buildStatusBar('服役中', controller.activeCount, controller.activeRatio, AppColors.secondary),
-          const SizedBox(height: 10),
-          _buildStatusBar('已退役', controller.retiredCount, controller.retiredRatio, const Color(0xFFB0BEC5)),
-          const SizedBox(height: 10),
-          _buildStatusBar('已出掉', controller.archivedCount, controller.archivedRatio, const Color(0xFFFFCC80)),
+          // --- 分隔线 ---
+          Container(
+            height: 1,
+            color: Colors.white.withValues(alpha: 0.2),
+          ),
+
+          const SizedBox(height: 14),
+
+          // --- 状态统计：一行三列 ---
+          Row(
+            children: [
+              _buildStatusChip('服役中', controller.activeCount, AppColors.secondary),
+              const SizedBox(width: 8),
+              _buildStatusChip('已退役', controller.retiredCount, const Color(0xFFB0BEC5)),
+              const SizedBox(width: 8),
+              _buildStatusChip('已出掉', controller.archivedCount, const Color(0xFFFFCC80)),
+            ],
+          ),
         ],
       )),
     );
@@ -205,51 +207,48 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBar(String label, int count, double ratio, Color barColor) {
+  Widget _buildStatusChip(String label, int count, Color color) {
     final total = controller.assets.length;
-    final percent = total > 0 ? (ratio * 100).toStringAsFixed(0) : '0';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final percent = total > 0 ? (count / total * 100).toStringAsFixed(0) : '0';
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
           children: [
-            Text(
-              '$label  $count 件',
-              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                ),
+              ],
             ),
+            const SizedBox(height: 4),
             Text(
-              '$percent%',
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              '$count 件 ($percent%)',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: Stack(
-            children: [
-              // 背景
-              Container(
-                height: 8,
-                width: double.infinity,
-                color: Colors.white.withOpacity(0.15),
-              ),
-              // 进度
-              FractionallySizedBox(
-                widthFactor: ratio.clamp(0.0, 1.0),
-                child: Container(
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: barColor,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -267,12 +266,12 @@ class HomePage extends StatelessWidget {
         break;
       case ItemStatus.retired:
         statusText = '已退役';
-        statusBgColor = const Color(0xFFB0BEC5).withOpacity(0.3);
+        statusBgColor = const Color(0xFFB0BEC5).withValues(alpha: 0.3);
         statusTextColor = AppColors.textPrimary;
         break;
       case ItemStatus.archived:
         statusText = '已出掉';
-        statusBgColor = AppColors.textSecondary.withOpacity(0.2);
+        statusBgColor = AppColors.textSecondary.withValues(alpha: 0.2);
         statusTextColor = AppColors.textPrimary;
         break;
     }

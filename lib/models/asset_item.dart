@@ -14,6 +14,18 @@ enum AssetCategory {
   fashion, // 服饰箱包
   @HiveField(4)
   service, // 权益/服务
+  @HiveField(5)
+  appliance, // 家电
+  @HiveField(6)
+  entertainment, // 娱乐
+  @HiveField(7)
+  sports, // 运动健身
+  @HiveField(8)
+  education, // 学习教育
+  @HiveField(9)
+  housing, // 房产
+  @HiveField(10)
+  other, // 其他
 }
 
 @HiveType(typeId: 1)

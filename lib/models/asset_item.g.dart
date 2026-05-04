@@ -90,6 +90,18 @@ class AssetCategoryAdapter extends TypeAdapter<AssetCategory> {
         return AssetCategory.fashion;
       case 4:
         return AssetCategory.service;
+      case 5:
+        return AssetCategory.appliance;
+      case 6:
+        return AssetCategory.entertainment;
+      case 7:
+        return AssetCategory.sports;
+      case 8:
+        return AssetCategory.education;
+      case 9:
+        return AssetCategory.housing;
+      case 10:
+        return AssetCategory.other;
       default:
         return AssetCategory.digital;
     }
@@ -112,6 +124,24 @@ class AssetCategoryAdapter extends TypeAdapter<AssetCategory> {
         break;
       case AssetCategory.service:
         writer.writeByte(4);
+        break;
+      case AssetCategory.appliance:
+        writer.writeByte(5);
+        break;
+      case AssetCategory.entertainment:
+        writer.writeByte(6);
+        break;
+      case AssetCategory.sports:
+        writer.writeByte(7);
+        break;
+      case AssetCategory.education:
+        writer.writeByte(8);
+        break;
+      case AssetCategory.housing:
+        writer.writeByte(9);
+        break;
+      case AssetCategory.other:
+        writer.writeByte(10);
         break;
     }
   }
