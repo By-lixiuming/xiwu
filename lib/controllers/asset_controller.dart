@@ -7,6 +7,13 @@ class AssetController extends GetxController {
 
   final RxList<AssetItem> assets = <AssetItem>[].obs;
 
+  // 看板详情显示开关
+  final RxBool isDetailVisible = true.obs;
+
+  void toggleDetailVisible() {
+    isDetailVisible.value = !isDetailVisible.value;
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -93,7 +100,7 @@ class AssetController extends GetxController {
   }
 
   int getDaysOwned(AssetItem asset) {
-    if (asset.status == ItemStatus.archived && asset.sellDate != null) {
+    if (asset.status != ItemStatus.active && asset.sellDate != null) {
       return asset.sellDate!.difference(asset.buyDate).inDays;
     }
     return DateTime.now().difference(asset.buyDate).inDays;
@@ -109,4 +116,23 @@ class AssetController extends GetxController {
       .fold(0.0, (sum, item) => sum + (item.sellPrice ?? 0));
 
   double get totalDepreciation => totalInvested - totalCurrentValue;
+
+  // 总日均成本
+  double get totalDailyCost {
+    double total = 0.0;
+    for (var asset in assets) {
+      total += getDailyCost(asset);
+    }
+    return total;
+  }
+
+  // --- 状态统计 ---
+
+  int get activeCount => assets.where((item) => item.status == ItemStatus.active).length;
+  int get retiredCount => assets.where((item) => item.status == ItemStatus.retired).length;
+  int get archivedCount => assets.where((item) => item.status == ItemStatus.archived).length;
+
+  double get activeRatio => assets.isEmpty ? 0.0 : activeCount / assets.length;
+  double get retiredRatio => assets.isEmpty ? 0.0 : retiredCount / assets.length;
+  double get archivedRatio => assets.isEmpty ? 0.0 : archivedCount / assets.length;
 }

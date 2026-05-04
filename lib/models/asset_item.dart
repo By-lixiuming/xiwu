@@ -32,6 +32,8 @@ enum ItemStatus {
   active, // 服役中
   @HiveField(1)
   archived, // 已出掉
+  @HiveField(2)
+  retired, // 已退役
 }
 
 @HiveType(typeId: 3)

@@ -77,36 +77,114 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
+      child: Obx(() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '当前总残值',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            currencyFormat.format(controller.totalCurrentValue),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 24),
+          // --- 第一行：总投入本金 + 日均成本 ---
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatItem('总投入本金', controller.totalInvested),
-              _buildStatItem('总折损', controller.totalDepreciation),
+              _buildTopStatItem('💰 总投入本金', controller.totalInvested),
+              _buildTopStatItem('📅 总日均成本', controller.totalDailyCost),
             ],
           ),
+
+          const SizedBox(height: 20),
+
+          // --- 分隔线 ---
+          Container(
+            height: 1,
+            color: Colors.white.withOpacity(0.2),
+          ),
+
+          const SizedBox(height: 16),
+
+          // --- 第二行：当前总残值 + 总折损（可隐藏）+ 眼睛开关 ---
+          Row(
+            children: [
+              Expanded(
+                child: controller.isDetailVisible.value
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildDetailStatItem('当前总残值', controller.totalCurrentValue),
+                          _buildDetailStatItem('总折损', controller.totalDepreciation),
+                        ],
+                      )
+                    : const Text(
+                        '****',
+                        style: TextStyle(
+                          color: Colors.white54,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 6,
+                        ),
+                      ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: controller.toggleDetailVisible,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    controller.isDetailVisible.value
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // --- 分隔线 ---
+          Container(
+            height: 1,
+            color: Colors.white.withOpacity(0.2),
+          ),
+
+          const SizedBox(height: 16),
+
+          // --- 第三行：三种状态占比统计 ---
+          _buildStatusBar('服役中', controller.activeCount, controller.activeRatio, AppColors.secondary),
+          const SizedBox(height: 10),
+          _buildStatusBar('已退役', controller.retiredCount, controller.retiredRatio, const Color(0xFFB0BEC5)),
+          const SizedBox(height: 10),
+          _buildStatusBar('已出掉', controller.archivedCount, controller.archivedRatio, const Color(0xFFFFCC80)),
         ],
-      ),
+      )),
     );
   }
 
-  Widget _buildStatItem(String label, double value) {
+  Widget _buildTopStatItem(String label, double value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          currencyFormat.format(value),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailStatItem(String label, double value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -127,8 +205,78 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  Widget _buildStatusBar(String label, int count, double ratio, Color barColor) {
+    final total = controller.assets.length;
+    final percent = total > 0 ? (ratio * 100).toStringAsFixed(0) : '0';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '$label  $count 件',
+              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+            ),
+            Text(
+              '$percent%',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: Stack(
+            children: [
+              // 背景
+              Container(
+                height: 8,
+                width: double.infinity,
+                color: Colors.white.withOpacity(0.15),
+              ),
+              // 进度
+              FractionallySizedBox(
+                widthFactor: ratio.clamp(0.0, 1.0),
+                child: Container(
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: barColor,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildAssetCard(AssetItem asset) {
     final dailyCost = controller.getDailyCost(asset);
+
+    String statusText;
+    Color statusBgColor;
+    Color statusTextColor;
+    switch (asset.status) {
+      case ItemStatus.active:
+        statusText = '服役中';
+        statusBgColor = AppColors.success;
+        statusTextColor = Colors.green.shade800;
+        break;
+      case ItemStatus.retired:
+        statusText = '已退役';
+        statusBgColor = const Color(0xFFB0BEC5).withOpacity(0.3);
+        statusTextColor = AppColors.textPrimary;
+        break;
+      case ItemStatus.archived:
+        statusText = '已出掉';
+        statusBgColor = AppColors.textSecondary.withOpacity(0.2);
+        statusTextColor = AppColors.textPrimary;
+        break;
+    }
+
     return Card(
       child: InkWell(
         onTap: () {
@@ -197,14 +345,14 @@ class HomePage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: asset.status == ItemStatus.active ? AppColors.success : AppColors.textSecondary.withOpacity(0.2),
+                      color: statusBgColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      asset.status == ItemStatus.active ? '服役中' : '已出掉',
+                      statusText,
                       style: TextStyle(
                         fontSize: 10,
-                        color: asset.status == ItemStatus.active ? Colors.green.shade800 : AppColors.textPrimary,
+                        color: statusTextColor,
                       ),
                     ),
                   ),

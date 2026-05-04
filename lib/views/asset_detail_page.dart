@@ -35,7 +35,7 @@ class AssetDetailPage extends StatelessWidget {
             const SizedBox(height: 16),
             _buildCostCard(),
             const SizedBox(height: 32),
-            if (asset.status == ItemStatus.active)
+            if (asset.status == ItemStatus.active || asset.status == ItemStatus.retired)
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -45,6 +45,22 @@ class AssetDetailPage extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.warning,
                     foregroundColor: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            if (asset.status == ItemStatus.active)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showRetireDialog(context),
+                    icon: const Icon(Icons.pause_circle_outline),
+                    label: const Text('退役（不再使用）'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                      side: BorderSide(color: AppColors.textSecondary.withOpacity(0.3)),
+                    ),
                   ),
                 ),
               ),
@@ -92,7 +108,7 @@ class AssetDetailPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              asset.status == ItemStatus.active ? '服役中' : '已出掉',
+              asset.status == ItemStatus.active ? '服役中' : asset.status == ItemStatus.retired ? '已退役' : '已出掉',
               style: TextStyle(
                 color: asset.status == ItemStatus.active ? AppColors.success : AppColors.textSecondary,
                 fontWeight: FontWeight.bold,
@@ -253,6 +269,33 @@ class AssetDetailPage extends StatelessWidget {
                 Get.back();
               },
               child: const Text('删除', style: TextStyle(color: AppColors.error)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showRetireDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('退役物品'),
+          content: const Text('将此物品标记为「已退役」？\n退役后物品不再计算折旧，但仍可随时转卖或恢复。'),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('取消'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                asset.status = ItemStatus.retired;
+                controller.updateAsset(asset);
+                Get.back();
+                Get.back(); // Return to home
+              },
+              child: const Text('确认退役'),
             ),
           ],
         );

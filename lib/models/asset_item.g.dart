@@ -182,6 +182,8 @@ class ItemStatusAdapter extends TypeAdapter<ItemStatus> {
         return ItemStatus.active;
       case 1:
         return ItemStatus.archived;
+      case 2:
+        return ItemStatus.retired;
       default:
         return ItemStatus.active;
     }
@@ -195,6 +197,9 @@ class ItemStatusAdapter extends TypeAdapter<ItemStatus> {
         break;
       case ItemStatus.archived:
         writer.writeByte(1);
+        break;
+      case ItemStatus.retired:
+        writer.writeByte(2);
         break;
     }
   }
