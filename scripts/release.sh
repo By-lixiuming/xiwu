@@ -4,7 +4,8 @@
 # 功能：自动递增版本号 → 构建 APK → 重命名 → Git 提交/标签 → 推送到 GitHub Release
 #
 # 用法：
-#   ./scripts/release.sh           # 正常发布
+#   ./scripts/release.sh           # 正常发布（需手动确认）
+#   ./scripts/release.sh --yes     # 跳过确认直接发布
 #   ./scripts/release.sh --dry-run # 干跑测试（不实际构建和发布）
 #
 
@@ -20,6 +21,7 @@ OUTPUT_DIR="$PROJECT_DIR/output"
 APK_SOURCE="$PROJECT_DIR/build/app/outputs/flutter-apk/app-release.apk"
 APP_NAME="xiwu"
 DRY_RUN=false
+AUTO_YES=false
 
 # 颜色输出
 RED='\033[0;31m'
@@ -38,11 +40,15 @@ for arg in "$@"; do
             DRY_RUN=true
             echo -e "${YELLOW}🔍 干跑模式 - 不执行实际构建和发布${NC}"
             ;;
+        --yes|-y)
+            AUTO_YES=true
+            ;;
         --help|-h)
             echo "用法: ./scripts/release.sh [选项]"
             echo ""
             echo "选项:"
             echo "  --dry-run    干跑模式，只显示将要执行的操作"
+            echo "  --yes, -y    跳过所有确认提示，直接执行"
             echo "  --help, -h   显示帮助信息"
             exit 0
             ;;
@@ -91,11 +97,15 @@ if [ "$DRY_RUN" = false ]; then
         echo ""
         git -C "$PROJECT_DIR" status --short
         echo ""
-        read -p "是否继续发布？(y/N) " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            echo "已取消发布"
-            exit 0
+        if [ "$AUTO_YES" = false ]; then
+            read -p "是否继续发布？(y/N) " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                echo "已取消发布"
+                exit 0
+            fi
+        else
+            echo -e "${YELLOW}  --yes 模式，自动继续${NC}"
         fi
     fi
 fi
@@ -156,11 +166,15 @@ fi
 # 确认发布
 # ============================================================
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-read -p "确认发布 V${NEW_VERSION}？(y/N) " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "已取消发布"
-    exit 0
+if [ "$AUTO_YES" = false ]; then
+    read -p "确认发布 V${NEW_VERSION}？(y/N) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "已取消发布"
+        exit 0
+    fi
+else
+    echo -e "${GREEN}✅ 自动确认发布 V${NEW_VERSION}${NC}"
 fi
 echo ""
 
