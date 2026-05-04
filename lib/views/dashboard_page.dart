@@ -355,7 +355,10 @@ class _DashboardPageState extends State<DashboardPage> {
                   color: color,
                   radius: isTouched ? 55 : 45,
                   titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-                  badgeWidget: isTouched ? null : Text(entry.key.emojiIcon, style: const TextStyle(fontSize: 18)),
+                  badgeWidget: Text(
+                    entry.key.emojiIcon,
+                    style: TextStyle(fontSize: isTouched ? 22 : 18),
+                  ),
                   badgePositionPercentageOffset: 1.3,
                 );
               }).toList(),
