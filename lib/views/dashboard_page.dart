@@ -21,8 +21,7 @@ class _DashboardPageState extends State<DashboardPage> {
   final Set<int> _selectedItemIds = {};
   // 是否已初始化选中
   bool _initialized = false;
-  // 饼图触摸的索引
-  final int _touchedPieIndex = -1;
+
 
   // 马卡龙色板
   static const List<Color> _chartColors = [
@@ -463,16 +462,11 @@ class _DashboardPageState extends State<DashboardPage> {
       final cost = controller.getDailyCost(entry.key);
       final percent = (entry.value * 100).toStringAsFixed(1);
 
-      final baseRadius = 50;
-      final extraRadius = 50 * entry.value;
-      final radiusStr = '${(baseRadius + extraRadius).toStringAsFixed(0)}%';
-
       return _PieData(
         entry.key.name,
         entry.value * 100,
         '${entry.key.name}\n$percent% | ¥${cost.toStringAsFixed(1)}',
         color,
-        radiusStr,
       );
     }).toList();
 
@@ -486,7 +480,6 @@ class _DashboardPageState extends State<DashboardPage> {
             xValueMapper: (_PieData data, _) => data.xData,
             yValueMapper: (_PieData data, _) => data.yData,
             pointColorMapper: (_PieData data, _) => data.color,
-            pointRadiusMapper: (_PieData data, _) => data.radius,
             dataLabelMapper: (_PieData data, _) => data.text,
             dataLabelSettings: const DataLabelSettings(
               isVisible: true,
@@ -513,6 +506,5 @@ class _PieData {
   final double yData;
   final String text;
   final Color color;
-  final String radius;
-  _PieData(this.xData, this.yData, this.text, this.color, this.radius);
+  _PieData(this.xData, this.yData, this.text, this.color);
 }
