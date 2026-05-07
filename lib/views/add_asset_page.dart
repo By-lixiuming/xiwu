@@ -217,6 +217,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
               // 买入日期（中文年月日格式）
               InkWell(
                 onTap: () async {
+                  FocusScope.of(context).unfocus();
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: _buyDate,
@@ -248,6 +249,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
               // 到期时间（选填）
               InkWell(
                 onTap: () async {
+                  FocusScope.of(context).unfocus();
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: _expiryDate ?? DateTime.now().add(const Duration(days: 365)),

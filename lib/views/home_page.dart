@@ -93,7 +93,7 @@ class _ReorderableAssetList extends StatelessWidget {
       onReorder: controller.reorderAssets,
       itemBuilder: (context, index) {
         final asset = controller.assets[index];
-        return ReorderableDragStartListener(
+        return ReorderableDelayedDragStartListener(
           key: ValueKey(asset.id),
           index: index,
           child: _AssetCard(asset: asset, controller: controller),

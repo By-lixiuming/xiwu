@@ -255,63 +255,94 @@ class _DashboardPageState extends State<DashboardPage> {
       );
     }
 
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: [
-        // 全选/全不选
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              if (_selectedItemIds.length == filtered.length) {
-                _selectedItemIds.clear();
-              } else {
-                _selectedItemIds.clear();
-                _selectedItemIds.addAll(filtered.map((a) => a.id));
-              }
-            });
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: _selectedItemIds.length == filtered.length ? AppColors.primary.withValues(alpha: 0.15) : AppColors.background,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-            ),
-            child: Text(
-              _selectedItemIds.length == filtered.length ? '取消全选' : '全选',
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
-            ),
-          ),
-        ),
-        ...filtered.map((asset) {
-          final isSelected = _selectedItemIds.contains(asset.id);
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                if (isSelected) { _selectedItemIds.remove(asset.id); } else { _selectedItemIds.add(asset.id); }
-              });
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.background,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: isSelected ? AppColors.primary : Colors.grey.withValues(alpha: 0.15)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+    return OutlinedButton.icon(
+      onPressed: () => _showMultiSelectDialog(filtered),
+      icon: const Icon(Icons.checklist_rtl_rounded, size: 18),
+      label: Text('选择物品 (${_selectedItemIds.length}/${filtered.length})'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.primary,
+        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  void _showMultiSelectDialog(List<AssetItem> filtered) {
+    // 使用局部状态来管理弹窗内的选中状态
+    final Set<int> tempSelectedIds = Set.from(_selectedItemIds);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final isAllSelected = tempSelectedIds.length == filtered.length;
+            return AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(asset.emojiIcon, style: const TextStyle(fontSize: 14)),
-                  const SizedBox(width: 4),
-                  Text(asset.name, style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, color: AppColors.textPrimary)),
+                  const Text('选择统计物品', style: TextStyle(fontSize: 18)),
+                  TextButton(
+                    onPressed: () {
+                      setDialogState(() {
+                        if (isAllSelected) {
+                          tempSelectedIds.clear();
+                        } else {
+                          tempSelectedIds.clear();
+                          tempSelectedIds.addAll(filtered.map((a) => a.id));
+                        }
+                      });
+                    },
+                    child: Text(isAllSelected ? '取消全选' : '全选'),
+                  ),
                 ],
               ),
-            ),
-          );
-        }),
-      ],
+              content: SizedBox(
+                width: double.maxFinite,
+                height: 300,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final asset = filtered[index];
+                    return CheckboxListTile(
+                      value: tempSelectedIds.contains(asset.id),
+                      title: Text('${asset.emojiIcon} ${asset.name}'),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setDialogState(() {
+                            if (val) {
+                              tempSelectedIds.add(asset.id);
+                            } else {
+                              tempSelectedIds.remove(asset.id);
+                            }
+                          });
+                        }
+                      },
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('取消'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedItemIds.clear();
+                      _selectedItemIds.addAll(tempSelectedIds);
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text('确定'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -327,69 +358,72 @@ class _DashboardPageState extends State<DashboardPage> {
     final proportions = controller.getDailyCostProportions(selectedAssets);
     final entries = proportions.entries.toList();
 
-    return Column(
-      children: [
-        SizedBox(
-          height: 220,
-          child: PieChart(
-            PieChartData(
-              pieTouchData: PieTouchData(
-                touchCallback: (event, response) {
-                  setState(() {
-                    if (!event.isInterestedForInteractions || response == null || response.touchedSection == null) {
-                      _touchedPieIndex = -1;
-                      return;
-                    }
-                    _touchedPieIndex = response.touchedSection!.touchedSectionIndex;
-                  });
-                },
-              ),
-              sections: entries.asMap().entries.map((e) {
-                final idx = e.key;
-                final entry = e.value;
-                final isTouched = idx == _touchedPieIndex;
-                final color = _chartColors[idx % _chartColors.length];
-                return PieChartSectionData(
-                  value: entry.value * 100,
-                  title: isTouched ? '${(entry.value * 100).toStringAsFixed(1)}%' : '',
-                  color: color,
-                  radius: isTouched ? 55 : 45,
-                  titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-                  badgeWidget: Text(
-                    entry.key.emojiIcon,
-                    style: TextStyle(fontSize: isTouched ? 22 : 18),
-                  ),
-                  badgePositionPercentageOffset: 1.3,
-                );
-              }).toList(),
-              centerSpaceRadius: 40,
-              sectionsSpace: 2,
-            ),
+    return SizedBox(
+      height: 320, // 增加高度以容纳外部标签
+      child: PieChart(
+        PieChartData(
+          pieTouchData: PieTouchData(
+            touchCallback: (event, response) {
+              setState(() {
+                if (!event.isInterestedForInteractions || response == null || response.touchedSection == null) {
+                  _touchedPieIndex = -1;
+                  return;
+                }
+                _touchedPieIndex = response.touchedSection!.touchedSectionIndex;
+              });
+            },
           ),
-        ),
-        const SizedBox(height: 16),
-        // 图例
-        Wrap(
-          spacing: 12,
-          runSpacing: 8,
-          children: entries.asMap().entries.map((e) {
+          sections: entries.asMap().entries.map((e) {
             final idx = e.key;
             final entry = e.value;
+            final isTouched = idx == _touchedPieIndex;
             final color = _chartColors[idx % _chartColors.length];
             final cost = controller.getDailyCost(entry.key);
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(width: 10, height: 10, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
-                const SizedBox(width: 4),
-                Text('${entry.key.emojiIcon} ${entry.key.name}', style: const TextStyle(fontSize: 12, color: AppColors.textPrimary)),
-                const SizedBox(width: 4),
-                Text('¥${cost.toStringAsFixed(2)}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-              ],
+            
+            return PieChartSectionData(
+              value: entry.value * 100,
+              color: color,
+              radius: isTouched ? 65 : 55,
+              showTitle: false, // 隐藏默认的内部标题
+              badgeWidget: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      entry.key.name,
+                      style: TextStyle(
+                        fontSize: isTouched ? 12 : 10,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      '${(entry.value * 100).toStringAsFixed(1)}% | ¥${cost.toStringAsFixed(1)}',
+                      style: TextStyle(
+                        fontSize: isTouched ? 11 : 9,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              badgePositionPercentageOffset: 1.45, // 将 badge 放到外部
             );
           }).toList(),
+          centerSpaceRadius: 45,
+          sectionsSpace: 2,
         ),
-      ],
+      ),
     );
   }
 }

@@ -548,6 +548,7 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
         // 买入日期
         InkWell(
           onTap: () async {
+            FocusScope.of(context).unfocus();
             final picked = await showDatePicker(
               context: context,
               initialDate: _editBuyDate,
@@ -575,6 +576,7 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
         // 到期时间
         InkWell(
           onTap: () async {
+            FocusScope.of(context).unfocus();
             final picked = await showDatePicker(
               context: context,
               initialDate: _editExpiryDate ?? DateTime.now().add(const Duration(days: 365)),
@@ -693,6 +695,7 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
                   const SizedBox(height: 16),
                   InkWell(
                     onTap: () async {
+                      FocusScope.of(context).unfocus();
                       final picked = await showDatePicker(
                         context: context,
                         initialDate: sellDate,
