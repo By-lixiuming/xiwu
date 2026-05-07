@@ -22,7 +22,7 @@ class _DashboardPageState extends State<DashboardPage> {
   // 是否已初始化选中
   bool _initialized = false;
   // 饼图触摸的索引
-  int _touchedPieIndex = -1;
+  final int _touchedPieIndex = -1;
 
   // 马卡龙色板
   static const List<Color> _chartColors = [
@@ -42,13 +42,23 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('📊 仪表盘', style: TextStyle(fontWeight: FontWeight.w900)),
+        title: const Text(
+          '📊 仪表盘',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
       ),
       body: Obx(() {
         if (controller.assets.isEmpty) {
           return const Center(
-            child: Text('还没有物品数据\n添加一些物品后再来看看吧', textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: AppColors.textSecondary, height: 1.5)),
+            child: Text(
+              '还没有物品数据\n添加一些物品后再来看看吧',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
+            ),
           );
         }
 
@@ -72,7 +82,9 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _initializeSelection() {
-    final filtered = controller.assets.where((a) => _pieStatusFilter.contains(a.status));
+    final filtered = controller.assets.where(
+      (a) => _pieStatusFilter.contains(a.status),
+    );
     _selectedItemIds.clear();
     _selectedItemIds.addAll(filtered.map((a) => a.id));
   }
@@ -80,15 +92,25 @@ class _DashboardPageState extends State<DashboardPage> {
   // ================== 日均成本排行榜 ==================
 
   Widget _buildRankingCard() {
-    final ranking = controller.getDailyCostRanking(statusFilter: {ItemStatus.active});
-    final maxCost = ranking.isNotEmpty ? controller.getDailyCost(ranking.first) : 1.0;
+    final ranking = controller.getDailyCostRanking(
+      statusFilter: {ItemStatus.active},
+    );
+    final maxCost = ranking.isNotEmpty
+        ? controller.getDailyCost(ranking.first)
+        : 1.0;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,19 +123,41 @@ class _DashboardPageState extends State<DashboardPage> {
                   color: AppColors.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.leaderboard_rounded, color: AppColors.primary, size: 20),
+                child: const Icon(
+                  Icons.leaderboard_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 10),
-              const Text('日均成本排行榜', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              const Text(
+                '日均成本排行榜',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 6),
-          Text('服役中物品 · 从高到低', style: TextStyle(fontSize: 12, color: AppColors.textSecondary.withValues(alpha: 0.7))),
+          Text(
+            '服役中物品 · 从高到低',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary.withValues(alpha: 0.7),
+            ),
+          ),
           const SizedBox(height: 20),
           if (ranking.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(child: Text('暂无服役中的物品', style: TextStyle(color: AppColors.textSecondary))),
+              child: Center(
+                child: Text(
+                  '暂无服役中的物品',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ),
             )
           else
             ...ranking.take(10).toList().asMap().entries.map((entry) {
@@ -128,7 +172,12 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildRankingBar(int index, AssetItem asset, double cost, double ratio) {
+  Widget _buildRankingBar(
+    int index,
+    AssetItem asset,
+    double cost,
+    double ratio,
+  ) {
     final color = _chartColors[index % _chartColors.length];
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -142,14 +191,22 @@ class _DashboardPageState extends State<DashboardPage> {
               Expanded(
                 child: Text(
                   asset.name,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
                 '¥${cost.toStringAsFixed(2)}/天',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color.withValues(alpha: 1)),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: color.withValues(alpha: 1),
+                ),
               ),
             ],
           ),
@@ -176,7 +233,13 @@ class _DashboardPageState extends State<DashboardPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,10 +252,21 @@ class _DashboardPageState extends State<DashboardPage> {
                   color: AppColors.secondary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.pie_chart_rounded, color: Color(0xFF2E7D5A), size: 20),
+                child: const Icon(
+                  Icons.pie_chart_rounded,
+                  color: Color(0xFF2E7D5A),
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 10),
-              const Text('日均成本占比', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              const Text(
+                '日均成本占比',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -237,21 +311,38 @@ class _DashboardPageState extends State<DashboardPage> {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.3) : AppColors.background,
+          color: isSelected
+              ? color.withValues(alpha: 0.3)
+              : AppColors.background,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? color : Colors.grey.withValues(alpha: 0.2), width: isSelected ? 2 : 1),
+          border: Border.all(
+            color: isSelected ? color : Colors.grey.withValues(alpha: 0.2),
+            width: isSelected ? 2 : 1,
+          ),
         ),
-        child: Text(label, style: TextStyle(fontSize: 13, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, color: AppColors.textPrimary)),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildItemSelector() {
-    final filtered = controller.assets.where((a) => _pieStatusFilter.contains(a.status)).toList();
+    final filtered = controller.assets
+        .where((a) => _pieStatusFilter.contains(a.status))
+        .toList();
     if (filtered.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 8),
-        child: Text('当前筛选条件下没有物品', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+        child: Text(
+          '当前筛选条件下没有物品',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+        ),
       );
     }
 
@@ -347,11 +438,18 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildPieChart() {
-    final selectedAssets = controller.assets.where((a) => _selectedItemIds.contains(a.id)).toList();
+    final selectedAssets = controller.assets
+        .where((a) => _selectedItemIds.contains(a.id))
+        .toList();
     if (selectedAssets.isEmpty) {
       return const SizedBox(
         height: 200,
-        child: Center(child: Text('请选择要统计的物品', style: TextStyle(color: AppColors.textSecondary))),
+        child: Center(
+          child: Text(
+            '请选择要统计的物品',
+            style: TextStyle(color: AppColors.textSecondary),
+          ),
+        ),
       );
     }
 
@@ -364,7 +462,7 @@ class _DashboardPageState extends State<DashboardPage> {
       final color = _chartColors[idx % _chartColors.length];
       final cost = controller.getDailyCost(entry.key);
       final percent = (entry.value * 100).toStringAsFixed(1);
-      
+
       final baseRadius = 50;
       final extraRadius = 50 * entry.value;
       final radiusStr = '${(baseRadius + extraRadius).toStringAsFixed(0)}%';
@@ -383,7 +481,7 @@ class _DashboardPageState extends State<DashboardPage> {
       child: SfCircularChart(
         margin: EdgeInsets.zero,
         series: <CircularSeries>[
-          PieSeries<_PieData, String>(
+          DoughnutSeries<_PieData, String>(
             dataSource: chartData,
             xValueMapper: (_PieData data, _) => data.xData,
             yValueMapper: (_PieData data, _) => data.yData,
@@ -398,15 +496,12 @@ class _DashboardPageState extends State<DashboardPage> {
                 type: ConnectorType.curve,
                 length: '15%',
               ),
-              textStyle: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
+              textStyle: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
             ),
-            innerRadius: '25%', 
+            innerRadius: '25%',
             strokeWidth: 2,
             strokeColor: Colors.white,
-          )
+          ),
         ],
       ),
     );
