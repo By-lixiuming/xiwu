@@ -114,6 +114,7 @@ class _AssetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dailyCost = controller.getDailyCost(asset);
+    final daysOwned = controller.getDaysOwned(asset);
 
     String statusText;
     Color statusBgColor;
@@ -137,37 +138,39 @@ class _AssetCard extends StatelessWidget {
     }
 
     return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () {
           Get.to(() => AssetDetailPage(asset: asset));
         },
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           child: Row(
             children: [
               // 拖拽手柄
               Icon(
                 Icons.drag_handle_rounded,
                 color: AppColors.textSecondary.withValues(alpha: 0.3),
-                size: 20,
+                size: 18,
               ),
               const SizedBox(width: 8),
               Container(
-                width: 60,
-                height: 60,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: AppColors.background,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
                   child: Text(
                     asset.emojiIcon,
-                    style: const TextStyle(fontSize: 32),
+                    style: const TextStyle(fontSize: 26),
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,18 +178,18 @@ class _AssetCard extends StatelessWidget {
                     Text(
                       asset.name,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       '日均: ¥${dailyCost.toStringAsFixed(2)}',
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                       ),
@@ -197,22 +200,22 @@ class _AssetCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const Text('当前残值', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                  const SizedBox(height: 4),
+                  const Text('服役天数', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                  const SizedBox(height: 2),
                   Text(
-                    '¥${(asset.status == ItemStatus.active ? asset.currentValue : asset.sellPrice ?? 0).toStringAsFixed(0)}',
+                    '$daysOwned 天',
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: statusBgColor,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       statusText,

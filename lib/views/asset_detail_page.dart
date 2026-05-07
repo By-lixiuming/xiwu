@@ -787,6 +787,7 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
             ElevatedButton(
               onPressed: () {
                 widget.asset.status = ItemStatus.retired;
+                widget.asset.sellDate = DateTime.now();
                 controller.updateAsset(widget.asset);
                 Get.back();
                 Get.back(); // Return to home

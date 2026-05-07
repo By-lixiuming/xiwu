@@ -379,11 +379,13 @@ class _DashboardPageState extends State<DashboardPage> {
             final isTouched = idx == _touchedPieIndex;
             final color = _chartColors[idx % _chartColors.length];
             final cost = controller.getDailyCost(entry.key);
+            final baseRadius = 40.0;
+            final calculatedRadius = baseRadius + (entry.value * 60.0);
             
             return PieChartSectionData(
               value: entry.value * 100,
               color: color,
-              radius: isTouched ? 65 : 55,
+              radius: isTouched ? calculatedRadius + 8 : calculatedRadius,
               showTitle: false, // 隐藏默认的内部标题
               badgeWidget: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
