@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:xiwu/controllers/asset_controller.dart';
 import 'package:xiwu/models/asset_item.dart';
 import 'package:xiwu/theme/app_theme.dart';
@@ -358,74 +358,66 @@ class _DashboardPageState extends State<DashboardPage> {
     final proportions = controller.getDailyCostProportions(selectedAssets);
     final entries = proportions.entries.toList();
 
+    final chartData = entries.asMap().entries.map((e) {
+      final idx = e.key;
+      final entry = e.value;
+      final color = _chartColors[idx % _chartColors.length];
+      final cost = controller.getDailyCost(entry.key);
+      final percent = (entry.value * 100).toStringAsFixed(1);
+      
+      final baseRadius = 50;
+      final extraRadius = 50 * entry.value;
+      final radiusStr = '${(baseRadius + extraRadius).toStringAsFixed(0)}%';
+
+      return _PieData(
+        entry.key.name,
+        entry.value * 100,
+        '${entry.key.name}\n$percent% | ¥${cost.toStringAsFixed(1)}',
+        color,
+        radiusStr,
+      );
+    }).toList();
+
     return SizedBox(
-      height: 320, // 增加高度以容纳外部标签
-      child: PieChart(
-        PieChartData(
-          pieTouchData: PieTouchData(
-            touchCallback: (event, response) {
-              setState(() {
-                if (!event.isInterestedForInteractions || response == null || response.touchedSection == null) {
-                  _touchedPieIndex = -1;
-                  return;
-                }
-                _touchedPieIndex = response.touchedSection!.touchedSectionIndex;
-              });
-            },
-          ),
-          sections: entries.asMap().entries.map((e) {
-            final idx = e.key;
-            final entry = e.value;
-            final isTouched = idx == _touchedPieIndex;
-            final color = _chartColors[idx % _chartColors.length];
-            final cost = controller.getDailyCost(entry.key);
-            final baseRadius = 40.0;
-            final calculatedRadius = baseRadius + (entry.value * 60.0);
-            
-            return PieChartSectionData(
-              value: entry.value * 100,
-              color: color,
-              radius: isTouched ? calculatedRadius + 8 : calculatedRadius,
-              showTitle: false, // 隐藏默认的内部标题
-              badgeWidget: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      entry.key.name,
-                      style: TextStyle(
-                        fontSize: isTouched ? 12 : 10,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      '${(entry.value * 100).toStringAsFixed(1)}% | ¥${cost.toStringAsFixed(1)}',
-                      style: TextStyle(
-                        fontSize: isTouched ? 11 : 9,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+      height: 350,
+      child: SfCircularChart(
+        margin: EdgeInsets.zero,
+        series: <CircularSeries>[
+          PieSeries<_PieData, String>(
+            dataSource: chartData,
+            xValueMapper: (_PieData data, _) => data.xData,
+            yValueMapper: (_PieData data, _) => data.yData,
+            pointColorMapper: (_PieData data, _) => data.color,
+            pointRadiusMapper: (_PieData data, _) => data.radius,
+            dataLabelMapper: (_PieData data, _) => data.text,
+            dataLabelSettings: const DataLabelSettings(
+              isVisible: true,
+              labelPosition: ChartDataLabelPosition.outside,
+              useSeriesColor: true,
+              connectorLineSettings: ConnectorLineSettings(
+                type: ConnectorType.curve,
+                length: '15%',
               ),
-              badgePositionPercentageOffset: 1.45, // 将 badge 放到外部
-            );
-          }).toList(),
-          centerSpaceRadius: 45,
-          sectionsSpace: 2,
-        ),
+              textStyle: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            innerRadius: '25%', 
+            strokeWidth: 2,
+            strokeColor: Colors.white,
+          )
+        ],
       ),
     );
   }
+}
+
+class _PieData {
+  final String xData;
+  final double yData;
+  final String text;
+  final Color color;
+  final String radius;
+  _PieData(this.xData, this.yData, this.text, this.color, this.radius);
 }
