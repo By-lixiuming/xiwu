@@ -371,12 +371,14 @@ class _DashboardPageState extends State<DashboardPage> {
                 dataLabelSettings: const DataLabelSettings(
                   isVisible: true,
                   labelPosition: ChartDataLabelPosition.outside,
-                  useSeriesColor: true,
+                  useSeriesColor: false,
+                  color: Colors.transparent,
+                  borderColor: Colors.transparent,
                   connectorLineSettings: ConnectorLineSettings(
-                    type: ConnectorType.curve,
-                    length: '15%',
+                    type: ConnectorType.line,
+                    length: '10%',
                   ),
-                  textStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  textStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                 ),
                 innerRadius: '65%',
                 strokeWidth: 2,
