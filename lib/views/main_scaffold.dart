@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:xiwu/controllers/asset_controller.dart';
 import 'package:xiwu/theme/app_theme.dart';
-import 'package:xiwu/views/add_asset_page.dart';
 import 'package:xiwu/views/home_page.dart';
 import 'package:xiwu/views/dashboard_page.dart';
+import 'package:xiwu/views/settings_page.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -19,26 +19,28 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   final List<Widget> _pages = [
     const HomeContent(),
-    const SizedBox(), // 占位，中间按钮直接跳转
     const DashboardPage(),
+    const SettingsPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       body: IndexedStack(
-        index: _currentIndex == 1 ? 0 : _currentIndex,
+        index: _currentIndex,
         children: _pages,
       ),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: _buildBottomNav(isDark),
       extendBody: true,
     );
   }
 
-  Widget _buildBottomNav() {
+  Widget _buildBottomNav(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -54,18 +56,19 @@ class _MainScaffoldState extends State<MainScaffold> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              // 首页
               _buildNavItem(
                 icon: Icons.home_rounded,
-                label: '首页',
+                label: 'tab_home'.tr,
                 index: 0,
               ),
-              // 记一笔（圆形按钮）
-              _buildCenterButton(),
-              // 仪表盘
               _buildNavItem(
                 icon: Icons.dashboard_rounded,
-                label: '仪表盘',
+                label: 'tab_dashboard'.tr,
+                index: 1,
+              ),
+              _buildNavItem(
+                icon: Icons.person_rounded,
+                label: 'tab_profile'.tr,
                 index: 2,
               ),
             ],
@@ -110,34 +113,6 @@ class _MainScaffoldState extends State<MainScaffold> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCenterButton() {
-    return GestureDetector(
-      onTap: () {
-        Get.to(() => const AddAssetPage());
-      },
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFFAAA5), Color(0xFFFFD3B6)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
       ),
     );
   }

@@ -4,11 +4,42 @@ import 'package:xiwu/controllers/asset_controller.dart';
 import 'package:xiwu/models/asset_item.dart';
 import 'package:xiwu/theme/app_theme.dart';
 import 'package:xiwu/views/asset_detail_page.dart';
+import 'package:xiwu/views/add_asset_page.dart';
 import 'package:intl/intl.dart';
 
 /// 首页内容组件（嵌入到 MainScaffold 中）
-class HomeContent extends StatelessWidget {
+class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
+
+  @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
+  final ScrollController _scrollController = ScrollController();
+  bool _isFabVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.offset <= 20) {
+        if (!_isFabVisible) {
+          setState(() => _isFabVisible = true);
+        }
+      } else {
+        if (_isFabVisible) {
+          setState(() => _isFabVisible = false);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +48,19 @@ class HomeContent extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('惜物 Xiwu', style: TextStyle(fontWeight: FontWeight.w900)),
+        title: Text('app_name'.tr, style: const TextStyle(fontWeight: FontWeight.w900)),
+      ),
+      floatingActionButton: AnimatedSlide(
+        duration: const Duration(milliseconds: 300),
+        offset: _isFabVisible ? Offset.zero : const Offset(0, 2),
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 300),
+          opacity: _isFabVisible ? 1.0 : 0.0,
+          child: FloatingActionButton(
+            onPressed: () => Get.to(() => const AddAssetPage()),
+            child: const Icon(Icons.add_rounded, size: 28),
+          ),
+        ),
       ),
       body: Obx(() {
         if (controller.assets.isEmpty) {
@@ -27,10 +70,10 @@ class HomeContent extends StatelessWidget {
               children: [
                 Image.asset('assets/images/empty_state.png', width: 250),
                 const SizedBox(height: 24),
-                const Text(
-                  '还没添加任何物品呢，\n快来记一笔吧！',
+                Text(
+                  'no_assets_msg'.tr,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: AppColors.textSecondary, height: 1.5),
+                  style: const TextStyle(fontSize: 16, color: AppColors.textSecondary, height: 1.5),
                 ),
                 const SizedBox(height: 80),
               ],
@@ -39,6 +82,7 @@ class HomeContent extends StatelessWidget {
         }
 
         return ListView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(16),
           children: [
             _InvestmentCard(controller: controller, currencyFormat: currencyFormat),
@@ -268,8 +312,8 @@ class _InvestmentCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatItem('💰 总投入本金', controller.totalInvested),
-              _buildStatItem('📅 总日均成本', controller.totalDailyCost),
+              _buildStatItem('total_invested'.tr, controller.totalInvested),
+              _buildStatItem('total_daily_cost'.tr, controller.totalDailyCost),
             ],
           ),
           const SizedBox(height: 16),
@@ -284,7 +328,7 @@ class _InvestmentCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  controller.isDetailVisible.value ? '收起详情' : '展开详情',
+                  controller.isDetailVisible.value ? 'collapse_details'.tr : 'expand_details'.tr,
                   style: const TextStyle(color: Colors.white60, fontSize: 11),
                 ),
                 const SizedBox(width: 8),
@@ -298,8 +342,8 @@ class _InvestmentCard extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildDetailItem('当前总残值', controller.totalCurrentValue),
-                  _buildDetailItem('总折损', controller.totalDepreciation),
+                  _buildDetailItem('current_value'.tr, controller.totalCurrentValue),
+                  _buildDetailItem('total_depreciation'.tr, controller.totalDepreciation),
                 ],
               ),
             ),
@@ -353,11 +397,11 @@ class _StatusCards extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: _buildCard('服役中', controller.activeCount, Icons.play_circle_outline_rounded, const Color(0xFFA8E6CF), const Color(0xFF2E7D5A))),
+        Expanded(child: _buildCard('in_service'.tr, controller.activeCount, Icons.play_circle_outline_rounded, const Color(0xFFA8E6CF), const Color(0xFF2E7D5A))),
         const SizedBox(width: 10),
-        Expanded(child: _buildCard('已退役', controller.retiredCount, Icons.pause_circle_outline_rounded, const Color(0xFFB0BEC5), const Color(0xFF546E7A))),
+        Expanded(child: _buildCard('retired'.tr, controller.retiredCount, Icons.pause_circle_outline_rounded, const Color(0xFFB0BEC5), const Color(0xFF546E7A))),
         const SizedBox(width: 10),
-        Expanded(child: _buildCard('已出掉', controller.archivedCount, Icons.check_circle_outline_rounded, const Color(0xFFFFDAC1), const Color(0xFFBF6C2E))),
+        Expanded(child: _buildCard('sold'.tr, controller.archivedCount, Icons.check_circle_outline_rounded, const Color(0xFFFFDAC1), const Color(0xFFBF6C2E))),
       ],
     );
   }
@@ -422,7 +466,7 @@ class _SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text('我的物品', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        Text('my_items'.tr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
         Container(
           decoration: BoxDecoration(
             color: Colors.white,

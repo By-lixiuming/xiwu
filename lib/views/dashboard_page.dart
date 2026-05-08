@@ -41,9 +41,9 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          '📊 仪表盘',
-          style: TextStyle(fontWeight: FontWeight.w900),
+        title: Text(
+          'tab_dashboard'.tr,
+          style: const TextStyle(fontWeight: FontWeight.w900),
         ),
       ),
       body: Obx(() {
@@ -351,7 +351,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 widget: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('总日均', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                    Text('total_daily_avg'.tr, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                     const SizedBox(height: 4),
                     Text(
                       totalCost.toStringAsFixed(1),
