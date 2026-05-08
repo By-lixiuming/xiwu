@@ -66,7 +66,7 @@ echo ""
 # 检查 version.txt 是否存在
 if [ ! -f "$VERSION_FILE" ]; then
     echo -e "${RED}❌ 错误：version.txt 不存在！${NC}"
-    echo "请在项目根目录创建 version.txt，内容为初始版本号，例如：1.0.0.0"
+    echo "请在项目根目录创建 version.txt，内容为初始版本号，例如：1.0.0"
     exit 1
 fi
 
@@ -116,18 +116,18 @@ fi
 CURRENT_VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
 echo -e "${GREEN}📋 当前版本号：V${CURRENT_VERSION}${NC}"
 
-# 解析四级版本号
-IFS='.' read -r MAJOR MINOR PATCH BUILD <<< "$CURRENT_VERSION"
+# 解析三级版本号
+IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
 
 # 验证版本号格式
-if [[ -z "$MAJOR" || -z "$MINOR" || -z "$PATCH" || -z "$BUILD" ]]; then
-    echo -e "${RED}❌ 错误：版本号格式无效！期望格式：X.Y.Z.W${NC}"
+if [[ -z "$MAJOR" || -z "$MINOR" || -z "$PATCH" ]]; then
+    echo -e "${RED}❌ 错误：版本号格式无效！期望格式：X.Y.Z${NC}"
     exit 1
 fi
 
 # 递增最小版本号
-NEW_BUILD=$((BUILD + 1))
-NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}.${NEW_BUILD}"
+NEW_PATCH=$((PATCH + 1))
+NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
 
 echo -e "${GREEN}📋 新版本号：  V${NEW_VERSION}${NC}"
 echo ""
@@ -135,15 +135,15 @@ echo ""
 # 计算 Flutter 版本号
 # version: MAJOR.MINOR.PATCH+versionCode
 # versionCode 需要是递增整数，使用公式确保唯一性
-VERSION_CODE=$((MAJOR * 1000000 + MINOR * 10000 + PATCH * 100 + NEW_BUILD))
-FLUTTER_VERSION="${MAJOR}.${MINOR}.${PATCH}+${VERSION_CODE}"
+VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + NEW_PATCH))
+FLUTTER_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}+${VERSION_CODE}"
 
 echo -e "${BLUE}📦 Flutter 版本：${FLUTTER_VERSION}${NC}"
 echo -e "${BLUE}📦 Android versionCode：${VERSION_CODE}${NC}"
 echo ""
 
 # APK 文件名
-APK_FILENAME="${APP_NAME}_v${MAJOR}_${MINOR}_${PATCH}_${NEW_BUILD}_release.apk"
+APK_FILENAME="${APP_NAME}_v${MAJOR}_${MINOR}_${NEW_PATCH}_release.apk"
 echo -e "${BLUE}📄 APK 文件名：${APK_FILENAME}${NC}"
 echo ""
 
