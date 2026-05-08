@@ -70,8 +70,6 @@ class _DashboardPageState extends State<DashboardPage> {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _buildRankingCard(),
-            const SizedBox(height: 20),
             _buildPieChartCard(),
             const SizedBox(height: 100),
           ],
@@ -86,142 +84,6 @@ class _DashboardPageState extends State<DashboardPage> {
     );
     _selectedItemIds.clear();
     _selectedItemIds.addAll(filtered.map((a) => a.id));
-  }
-
-  // ================== 日均成本排行榜 ==================
-
-  Widget _buildRankingCard() {
-    final ranking = controller.getDailyCostRanking(
-      statusFilter: {ItemStatus.active},
-    );
-    final maxCost = ranking.isNotEmpty
-        ? controller.getDailyCost(ranking.first)
-        : 1.0;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.leaderboard_rounded,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 10),
-              const Text(
-                '日均成本排行榜',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            '服役中物品 · 从高到低',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary.withValues(alpha: 0.7),
-            ),
-          ),
-          const SizedBox(height: 20),
-          if (ranking.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(
-                child: Text(
-                  '暂无服役中的物品',
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-            )
-          else
-            ...ranking.take(10).toList().asMap().entries.map((entry) {
-              final idx = entry.key;
-              final asset = entry.value;
-              final cost = controller.getDailyCost(asset);
-              final ratio = maxCost > 0 ? cost / maxCost : 0.0;
-              return _buildRankingBar(idx, asset, cost, ratio);
-            }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRankingBar(
-    int index,
-    AssetItem asset,
-    double cost,
-    double ratio,
-  ) {
-    final color = _chartColors[index % _chartColors.length];
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(asset.emojiIcon, style: const TextStyle(fontSize: 18)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  asset.name,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                '¥${cost.toStringAsFixed(2)}/天',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: color.withValues(alpha: 1),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: ratio.clamp(0.0, 1.0),
-              backgroundColor: AppColors.background,
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-              minHeight: 8,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   // ================== 日均占比饼图 ==================
@@ -455,6 +317,9 @@ class _DashboardPageState extends State<DashboardPage> {
     final proportions = controller.getDailyCostProportions(selectedAssets);
     final entries = proportions.entries.toList();
     
+    // Sort descending by cost
+    entries.sort((a, b) => b.value.compareTo(a.value));
+
     double totalCost = 0;
     for (var a in selectedAssets) {
       totalCost += controller.getDailyCost(a);
@@ -478,7 +343,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return Column(
       children: [
         SizedBox(
-          height: 240,
+          height: 280,
           child: SfCircularChart(
             margin: EdgeInsets.zero,
             annotations: <CircularChartAnnotation>[
@@ -486,9 +351,12 @@ class _DashboardPageState extends State<DashboardPage> {
                 widget: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('总计日均', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                    const Text('总日均', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                     const SizedBox(height: 4),
-                    Text('¥${totalCost.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.textPrimary)),
+                    Text(
+                      totalCost.toStringAsFixed(1),
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.textPrimary),
+                    ),
                   ],
                 ),
               )
@@ -499,49 +367,94 @@ class _DashboardPageState extends State<DashboardPage> {
                 xValueMapper: (_PieData data, _) => data.name,
                 yValueMapper: (_PieData data, _) => data.percent,
                 pointColorMapper: (_PieData data, _) => data.color,
-                dataLabelSettings: const DataLabelSettings(isVisible: false),
-                innerRadius: '70%',
+                dataLabelMapper: (_PieData data, _) => data.name,
+                dataLabelSettings: const DataLabelSettings(
+                  isVisible: true,
+                  labelPosition: ChartDataLabelPosition.outside,
+                  useSeriesColor: true,
+                  connectorLineSettings: ConnectorLineSettings(
+                    type: ConnectorType.curve,
+                    length: '15%',
+                  ),
+                  textStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+                innerRadius: '65%',
                 strokeWidth: 2,
                 strokeColor: Colors.white,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        // 自定义图例列表
+        const SizedBox(height: 20),
+        // 自定义带进度条图例列表
         ...chartData.map((data) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 20),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // 图标
                 Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(color: data.color, shape: BoxShape.circle),
-                ),
-                const SizedBox(width: 10),
-                Text(data.emoji, style: const TextStyle(fontSize: 16)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    data.name,
-                    style: const TextStyle(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: data.color,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Center(
+                    child: Text(data.emoji, style: const TextStyle(fontSize: 22)),
                   ),
                 ),
-                Text(
-                  '${data.percent.toStringAsFixed(1)}%',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                const SizedBox(width: 12),
+                // 文本与进度条
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              data.name,
+                              style: const TextStyle(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${data.percent.toStringAsFixed(2)}%',
+                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // 进度条
+                      Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: (data.percent / 100).clamp(0.0, 1.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: data.color.withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 16),
-                SizedBox(
-                  width: 75,
-                  child: Text(
-                    '¥${data.cost.toStringAsFixed(1)}/天',
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                  ),
+                // 金额
+                Text(
+                  '¥${data.cost.toStringAsFixed(1)}/天',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
                 ),
               ],
             ),
