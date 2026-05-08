@@ -95,7 +95,6 @@ class _HomeContentState extends State<HomeContent> {
               _GridView(controller: controller)
             else
               _ReorderableAssetList(controller: controller, currencyFormat: currencyFormat),
-            const SizedBox(height: 100), // spacing for bottom nav
           ],
         );
       }),

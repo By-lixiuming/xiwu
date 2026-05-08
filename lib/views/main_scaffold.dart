@@ -33,7 +33,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         children: _pages,
       ),
       bottomNavigationBar: _buildBottomNav(isDark),
-      extendBody: true,
+      extendBody: false,
     );
   }
 
