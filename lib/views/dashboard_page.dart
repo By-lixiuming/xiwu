@@ -454,57 +454,109 @@ class _DashboardPageState extends State<DashboardPage> {
 
     final proportions = controller.getDailyCostProportions(selectedAssets);
     final entries = proportions.entries.toList();
+    
+    double totalCost = 0;
+    for (var a in selectedAssets) {
+      totalCost += controller.getDailyCost(a);
+    }
 
     final chartData = entries.asMap().entries.map((e) {
       final idx = e.key;
       final entry = e.value;
       final color = _chartColors[idx % _chartColors.length];
       final cost = controller.getDailyCost(entry.key);
-      final percent = (entry.value * 100).toStringAsFixed(1);
 
       return _PieData(
         entry.key.name,
         entry.value * 100,
-        '${entry.key.name}\n$percent% | ¥${cost.toStringAsFixed(1)}',
         color,
+        cost,
+        entry.key.emojiIcon,
       );
     }).toList();
 
-    return SizedBox(
-      height: 350,
-      child: SfCircularChart(
-        margin: EdgeInsets.zero,
-        series: <CircularSeries>[
-          DoughnutSeries<_PieData, String>(
-            dataSource: chartData,
-            xValueMapper: (_PieData data, _) => data.xData,
-            yValueMapper: (_PieData data, _) => data.yData,
-            pointColorMapper: (_PieData data, _) => data.color,
-            dataLabelMapper: (_PieData data, _) => data.text,
-            dataLabelSettings: const DataLabelSettings(
-              isVisible: true,
-              labelPosition: ChartDataLabelPosition.outside,
-              useSeriesColor: true,
-              connectorLineSettings: ConnectorLineSettings(
-                type: ConnectorType.curve,
-                length: '15%',
+    return Column(
+      children: [
+        SizedBox(
+          height: 240,
+          child: SfCircularChart(
+            margin: EdgeInsets.zero,
+            annotations: <CircularChartAnnotation>[
+              CircularChartAnnotation(
+                widget: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('总计日均', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                    const SizedBox(height: 4),
+                    Text('¥${totalCost.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.textPrimary)),
+                  ],
+                ),
+              )
+            ],
+            series: <CircularSeries>[
+              DoughnutSeries<_PieData, String>(
+                dataSource: chartData,
+                xValueMapper: (_PieData data, _) => data.name,
+                yValueMapper: (_PieData data, _) => data.percent,
+                pointColorMapper: (_PieData data, _) => data.color,
+                dataLabelSettings: const DataLabelSettings(isVisible: false),
+                innerRadius: '70%',
+                strokeWidth: 2,
+                strokeColor: Colors.white,
               ),
-              textStyle: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-            ),
-            innerRadius: '25%',
-            strokeWidth: 2,
-            strokeColor: Colors.white,
+            ],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+        // 自定义图例列表
+        ...chartData.map((data) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(color: data.color, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 10),
+                Text(data.emoji, style: const TextStyle(fontSize: 16)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    data.name,
+                    style: const TextStyle(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  '${data.percent.toStringAsFixed(1)}%',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const SizedBox(width: 16),
+                SizedBox(
+                  width: 75,
+                  child: Text(
+                    '¥${data.cost.toStringAsFixed(1)}/天',
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 }
 
 class _PieData {
-  final String xData;
-  final double yData;
-  final String text;
+  final String name;
+  final double percent;
   final Color color;
-  _PieData(this.xData, this.yData, this.text, this.color);
+  final double cost;
+  final String emoji;
+  _PieData(this.name, this.percent, this.color, this.cost, this.emoji);
 }

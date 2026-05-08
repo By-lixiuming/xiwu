@@ -186,52 +186,77 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
   Widget _buildHeaderCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            widget.asset.emojiIcon,
-            style: const TextStyle(fontSize: 80),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            widget.asset.name,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Text(
-              widget.asset.status == ItemStatus.active ? '服役中' : widget.asset.status == ItemStatus.retired ? '已退役' : '已出掉',
-              style: TextStyle(
-                color: widget.asset.status == ItemStatus.active ? AppColors.success : AppColors.textSecondary,
-                fontWeight: FontWeight.bold,
+            child: Center(
+              child: Text(
+                widget.asset.emojiIcon,
+                style: const TextStyle(fontSize: 32),
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            categoryName(widget.asset.category),
-            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.asset.name,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        widget.asset.status == ItemStatus.active ? '服役中' : widget.asset.status == ItemStatus.retired ? '已退役' : '已出掉',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: widget.asset.status == ItemStatus.active ? AppColors.success : AppColors.textSecondary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      categoryName(widget.asset.category),
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),

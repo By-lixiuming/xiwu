@@ -366,25 +366,45 @@ class _StatusCards extends StatelessWidget {
     final total = controller.assets.length;
     final percent = total > 0 ? (count / total * 100).toStringAsFixed(0) : '0';
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: bgColor.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: bgColor.withValues(alpha: 0.25), blurRadius: 8, offset: const Offset(0, 2))],
       ),
-      child: Column(
+      child: Row(
         children: [
           Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(color: bgColor.withValues(alpha: 0.35), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, size: 20, color: iconColor),
+            width: 32, height: 32,
+            decoration: BoxDecoration(color: bgColor.withValues(alpha: 0.35), borderRadius: BorderRadius.circular(10)),
+            child: Icon(icon, size: 18, color: iconColor),
           ),
-          const SizedBox(height: 10),
-          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
-          const SizedBox(height: 4),
-          Text('$count 件', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-          const SizedBox(height: 2),
-          Text('$percent%', style: TextStyle(fontSize: 11, color: AppColors.textSecondary.withValues(alpha: 0.7), fontWeight: FontWeight.w500)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text('$count', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                    const SizedBox(width: 2),
+                    Text('件', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(4)),
+                      child: Text('$percent%', style: TextStyle(fontSize: 9, color: AppColors.textSecondary.withValues(alpha: 0.8), fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
