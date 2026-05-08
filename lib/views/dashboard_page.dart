@@ -368,17 +368,19 @@ class _DashboardPageState extends State<DashboardPage> {
                 yValueMapper: (_PieData data, _) => data.percent,
                 pointColorMapper: (_PieData data, _) => data.color,
                 dataLabelMapper: (_PieData data, _) => data.name,
-                dataLabelSettings: const DataLabelSettings(
+                dataLabelSettings: DataLabelSettings(
                   isVisible: true,
                   labelPosition: ChartDataLabelPosition.outside,
-                  useSeriesColor: false,
-                  color: Colors.transparent,
-                  borderColor: Colors.transparent,
-                  connectorLineSettings: ConnectorLineSettings(
+                  connectorLineSettings: const ConnectorLineSettings(
                     type: ConnectorType.line,
                     length: '10%',
                   ),
-                  textStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  builder: (dynamic data, dynamic point, dynamic series, int pointIndex, int seriesIndex) {
+                    return Text(
+                      (data as _PieData).name,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    );
+                  },
                 ),
                 innerRadius: '65%',
                 strokeWidth: 2,
