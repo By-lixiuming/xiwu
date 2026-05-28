@@ -30,9 +30,22 @@
 
 ## 🏗️ 项目架构
 
-项目基于 **Flutter** 构建，采用 **GetX** 状态管理 + **Hive** 本地数据库的技术方案。
+V2.0 采用 **Monorepo** 结构，客户端与服务端统一管理。
+
+### 顶层目录结构
+
+```
+xiwu/
+├── Client/                        # Flutter 客户端（原有代码）
+├── Server/                        # FastAPI 服务端（V2.0 新增）
+├── 需求/                           # 产品需求文档 & 技术设计文档
+├── README.md                      # 项目总览
+└── .gitignore
+```
 
 ### 技术栈
+
+**客户端 (Client)：**
 
 | 类别 | 技术选型 | 版本 |
 |:---|:---|:---|
@@ -43,45 +56,78 @@
 | 代码生成 | build_runner + hive_generator | - |
 | 国际化 | intl | ^0.20.2 |
 
-### 目录结构
+**服务端 (Server)：**
+
+| 类别 | 技术选型 | 版本 |
+|:---|:---|:---|
+| Web 框架 | FastAPI | 0.115.0 |
+| 编程语言 | Python | 3.11+ |
+| ORM | SQLAlchemy 2.0 (async) | 2.0.35 |
+| 数据库 | PostgreSQL | 16 |
+| 缓存 | Redis | 7 |
+| 认证 | JWT (PyJWT) | 2.9.0 |
+| 部署 | Docker + Nginx | - |
+
+### 客户端目录结构
 
 ```
-lib/
-├── main.dart                      # 应用入口，初始化 Hive 和 GetX 依赖注入
-├── controllers/
-│   └── asset_controller.dart      # 资产控制器：CRUD 操作 + 折旧计算 + 看板汇总
-├── models/
-│   ├── asset_item.dart            # 数据模型：AssetItem + 枚举（分类/折旧模型/状态）
-│   └── asset_item.g.dart          # Hive TypeAdapter（自动生成）
-├── services/
-│   └── database_service.dart      # 数据库服务：Hive Box 管理 + CRUD 封装
-├── theme/
-│   └── app_theme.dart             # 主题配置：马卡龙/莫兰迪色系 + Material 3
-└── views/
-    ├── home_page.dart             # 首页：看板卡片 + 资产列表
-    ├── add_asset_page.dart        # 新增资产页：表单录入
-    └── asset_detail_page.dart     # 资产详情页：数据展示 + 出掉/删除操作
+Client/
+├── lib/
+│   ├── main.dart                      # 应用入口，初始化 Hive 和 GetX 依赖注入
+│   ├── controllers/
+│   │   └── asset_controller.dart      # 资产控制器：CRUD 操作 + 折旧计算 + 看板汇总
+│   ├── models/
+│   │   ├── asset_item.dart            # 数据模型：AssetItem + 枚举（分类/折旧模型/状态）
+│   │   └── asset_item.g.dart          # Hive TypeAdapter（自动生成）
+│   ├── services/
+│   │   └── database_service.dart      # 数据库服务：Hive Box 管理 + CRUD 封装
+│   ├── theme/
+│   │   └── app_theme.dart             # 主题配置：马卡龙/莫兰迪色系 + Material 3
+│   └── views/
+│       ├── home_page.dart             # 首页：看板卡片 + 资产列表
+│       ├── add_asset_page.dart        # 新增资产页：表单录入
+│       └── asset_detail_page.dart     # 资产详情页：数据展示 + 出掉/删除操作
+├── pubspec.yaml
+└── ...（Android/iOS/Web/Linux/macOS/Windows 平台目录）
+```
+
+### 服务端目录结构
+
+```
+Server/
+├── docker-compose.yml                 # Docker 编排
+├── Dockerfile                         # FastAPI 镜像
+├── requirements.txt                   # Python 依赖
+├── alembic/                           # 数据库迁移
+├── app/
+│   ├── main.py                        # FastAPI 应用入口
+│   ├── config.py                      # 配置管理
+│   ├── database.py                    # 数据库连接 & Session
+│   ├── models/                        # SQLAlchemy ORM 模型
+│   ├── schemas/                       # Pydantic 请求/响应模型
+│   ├── api/v1/                        # API 路由
+│   ├── services/                      # 业务逻辑层
+│   ├── core/                          # 核心工具（JWT/安全/Redis）
+│   └── middleware/                    # 中间件
+└── tests/                             # 测试
 ```
 
 ### 架构设计
 
 ```
-┌──────────────────────────────────────────────┐
-│                   Views 层                    │
-│  HomePage / AddAssetPage / AssetDetailPage    │
-├──────────────────────────────────────────────┤
-│               Controllers 层                  │
-│     AssetController (GetX 响应式状态管理)       │
-├──────────────────────────────────────────────┤
-│                Services 层                    │
-│      DatabaseService (Hive CRUD 操作)         │
-├──────────────────────────────────────────────┤
-│                 Models 层                     │
-│   AssetItem / AssetCategory / ItemStatus      │
-│   DepreciationModel (Hive TypeAdapter)        │
-├──────────────────────────────────────────────┤
-│               Hive 本地存储                    │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                     Client (Flutter App)                          │
+│  ┌──────────┐  ┌──────────┐  ┌────────────────────────────────┐ │
+│  │ Hive 本地 │◄►│ SyncEngine│◄►│ API Client (认证/资产/同步)    │ │
+│  └──────────┘  └──────────┘  └───────────────┬────────────────┘ │
+└──────────────────────────────────────────────┼──────────────────┘
+                                               │ HTTPS
+┌──────────────────────────────────────────────┼──────────────────┐
+│                     Server (FastAPI)          │                  │
+│  ┌──────┐  ┌─────────┴──────────┐  ┌──────┐  ┌──────┐         │
+│  │Nginx │──│ Auth/Asset/Sync API│──│Redis │  │ PgSQL│         │
+│  └──────┘  └────────────────────┘  └──────┘  └──────┘         │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### 数据模型
@@ -118,7 +164,7 @@ lib/
 
 ```bash
 git clone git@github.com:By-lixiuming/xiwu.git
-cd xiwu
+cd xiwu/Client
 ```
 
 2. **安装依赖**

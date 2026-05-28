@@ -1,25 +1,31 @@
-# Miscellaneous
+# ============================================
+# 惜物 Xiwu Monorepo .gitignore
+# ============================================
+
+# ============ 通用 ============
 *.class
 *.log
 *.pyc
+*.pyo
 *.swp
+*.swo
+*~
 .DS_Store
 .atom/
 .buildlog/
 .history
 .svn/
-migrate_working_dir/
+Thumbs.db
 
-# IntelliJ related
+# IDE
 *.iml
 *.ipr
 *.iws
 .idea/
-
-# The .vscode folder contains maintainer specific settings.
 .vscode/
 
-# Flutter/Dart/Pub related
+# ============ Client (Flutter) ============
+# Flutter/Dart/Pub
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
@@ -29,6 +35,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 build/
+migrate_working_dir/
 
 # Symbolication related
 app.*.symbols
@@ -61,3 +68,36 @@ app.*.map.json
 
 # Release APK output
 output/
+
+# ============ Server (Python/FastAPI) ============
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+eggs/
+*.whl
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Environment variables
+Server/.env
+
+# Database
+*.db
+*.sqlite3
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ============ Docker ============
+docker-compose.override.yml
