@@ -92,6 +92,20 @@ class AssetItem extends HiveObject {
   @HiveField(13, defaultValue: 0)
   int sortOrder;
 
+  // ==== V2.0 Sync Engine Fields ==== //
+
+  @HiveField(14)
+  String? serverId;
+
+  @HiveField(15)
+  DateTime? updatedAt;
+
+  @HiveField(16, defaultValue: false)
+  bool isDeleted;
+
+  @HiveField(17)
+  DateTime? deletedAt;
+
   AssetItem({
     required this.id,
     required this.name,
@@ -107,5 +121,9 @@ class AssetItem extends HiveObject {
     this.note,
     this.expiryDate,
     this.sortOrder = 0,
+    this.serverId,
+    this.updatedAt,
+    this.isDeleted = false,
+    this.deletedAt,
   });
 }

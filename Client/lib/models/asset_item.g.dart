@@ -31,13 +31,17 @@ class AssetItemAdapter extends TypeAdapter<AssetItem> {
       note: fields[11] as String?,
       expiryDate: fields[12] as DateTime?,
       sortOrder: fields[13] == null ? 0 : fields[13] as int,
+      serverId: fields[14] as String?,
+      updatedAt: fields[15] as DateTime?,
+      isDeleted: fields[16] == null ? false : fields[16] as bool,
+      deletedAt: fields[17] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AssetItem obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(18)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -65,7 +69,15 @@ class AssetItemAdapter extends TypeAdapter<AssetItem> {
       ..writeByte(12)
       ..write(obj.expiryDate)
       ..writeByte(13)
-      ..write(obj.sortOrder);
+      ..write(obj.sortOrder)
+      ..writeByte(14)
+      ..write(obj.serverId)
+      ..writeByte(15)
+      ..write(obj.updatedAt)
+      ..writeByte(16)
+      ..write(obj.isDeleted)
+      ..writeByte(17)
+      ..write(obj.deletedAt);
   }
 
   @override

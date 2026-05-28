@@ -5,6 +5,7 @@ import 'package:xiwu/models/asset_item.dart';
 import 'package:xiwu/theme/app_theme.dart';
 import 'package:xiwu/views/asset_detail_page.dart';
 import 'package:xiwu/views/add_asset_page.dart';
+import 'package:xiwu/services/sync_engine.dart';
 import 'package:intl/intl.dart';
 
 /// 首页内容组件（嵌入到 MainScaffold 中）
@@ -49,6 +50,28 @@ class _HomeContentState extends State<HomeContent> {
     return Scaffold(
       appBar: AppBar(
         title: Text('app_name'.tr, style: const TextStyle(fontWeight: FontWeight.w900)),
+        actions: [
+          Obx(() {
+            final syncEngine = Get.find<SyncEngine>();
+            if (syncEngine.isSyncing.value) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Center(
+                  child: SizedBox(
+                    width: 20, height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              );
+            } else {
+              return IconButton(
+                icon: const Icon(Icons.cloud_sync_rounded),
+                onPressed: () => syncEngine.sync(),
+                tooltip: '同步数据',
+              );
+            }
+          }),
+        ],
       ),
       floatingActionButton: AnimatedSlide(
         duration: const Duration(milliseconds: 300),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:xiwu/services/settings_service.dart';
 import 'package:xiwu/theme/app_theme.dart';
+import 'package:xiwu/services/auth_service.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -18,6 +19,10 @@ class SettingsPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // User Profile
+          _buildUserProfile(isDark),
+          const SizedBox(height: 24),
+
           // Theme Mode
           _buildSectionTitle('theme_mode'.tr),
           const SizedBox(height: 8),
@@ -28,7 +33,90 @@ class SettingsPage extends StatelessWidget {
           _buildSectionTitle('language'.tr),
           const SizedBox(height: 8),
           Obx(() => _buildLanguageSelector(settingsService, isDark)),
+          const SizedBox(height: 48),
+
+          // Logout Button
+          _buildLogoutButton(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildUserProfile(bool isDark) {
+    final authService = Get.find<AuthService>();
+    return Obx(() {
+      final user = authService.currentUser.value;
+      if (user == null) return const SizedBox.shrink();
+
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  user['avatar_emoji'] ?? '😊',
+                  style: const TextStyle(fontSize: 32),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user['nickname'] ?? '惜物用户',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    user['phone'] ?? '',
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildLogoutButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red.shade50,
+        foregroundColor: Colors.red,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 0,
+      ),
+      onPressed: () async {
+        final authService = Get.find<AuthService>();
+        await authService.logout();
+        Get.offAllNamed('/login');
+      },
+      child: const Text(
+        '退出登录',
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
     );
   }

@@ -7,6 +7,10 @@ import 'package:xiwu/services/settings_service.dart';
 import 'package:xiwu/lang/translation_service.dart';
 import 'package:xiwu/theme/app_theme.dart';
 import 'package:xiwu/views/main_scaffold.dart';
+import 'package:xiwu/views/login_page.dart';
+import 'package:xiwu/services/api_service.dart';
+import 'package:xiwu/services/auth_service.dart';
+import 'package:xiwu/services/sync_engine.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
@@ -22,6 +26,20 @@ void main() async {
   final dbService = DatabaseService();
   await dbService.init();
   Get.put(dbService);
+
+  // Initialize Network & Auth
+  final apiService = ApiService();
+  await apiService.init();
+  Get.put(apiService);
+
+  final authService = AuthService();
+  await authService.init();
+  Get.put(authService);
+
+  // Initialize Sync Engine
+  final syncEngine = SyncEngine();
+  await syncEngine.init();
+  Get.put(syncEngine);
 
   // Initialize Settings Service
   final settingsService = SettingsService();
@@ -46,7 +64,11 @@ class MyApp extends StatelessWidget {
       translations: TranslationService(),
       locale: settingsService.currentLocale,
       fallbackLocale: const Locale('en', 'US'),
-      home: const MainScaffold(),
+      initialRoute: Get.find<AuthService>().isLoggedIn.value ? '/home' : '/login',
+      getPages: [
+        GetPage(name: '/login', page: () => LoginPage()),
+        GetPage(name: '/home', page: () => const MainScaffold()),
+      ],
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
